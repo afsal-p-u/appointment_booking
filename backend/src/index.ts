@@ -8,6 +8,8 @@ import mysql from 'mysql2'
 import dotenv from 'dotenv'
 
 import authRoute from './routes/auth.route'
+import bookingRoute from './routes/booking.route'
+import notificationRoute from './routes/notification.route'
 
 dotenv.config()
 const app = express()
@@ -19,6 +21,8 @@ app.use(cookieParser())
 app.use(bodyParser.json())
 
 app.use('/api/auth', authRoute)
+app.use('/api/booking', bookingRoute)
+app.use('/api/notification', notificationRoute)
 
 const connection = mysql.createConnection({
     host: 'localhost',

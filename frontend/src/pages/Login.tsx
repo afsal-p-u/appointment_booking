@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import Inputs from "../components/Inputs"
 import Button from '../components/Button'
 import axios from 'axios'
+import { useAuthContext } from '../context/AuthContext'
 
 type Inputs = {
   email: string,
@@ -12,6 +13,7 @@ type Inputs = {
 
 const Login = () => {
   const [inputs, setInputs] = useState<Inputs | null>(null)
+  const { setToken } = useAuthContext()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputs((prev: Inputs | any) => {
@@ -23,7 +25,7 @@ const Login = () => {
     e.preventDefault()
 
     axios.post('http://localhost:8080/api/auth/login', inputs).then((res) => {
-      console.log(res)
+      setToken(res.data)
     }).catch((err) => {
       console.log(err)
     })

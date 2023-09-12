@@ -1,15 +1,8 @@
 import { Request, Response } from "express";
 const CryptoJS = require("crypto-js");
 import jwt from "jsonwebtoken";
-
-import mysql from "mysql2/promise";
-
-var conn = {
-  host: "localhost",
-  user: "root",
-  password: "1234",
-  database: "appoinment_booking",
-};
+import { pool } from '../utils/connection'
+import { createTableUsersSql, insertUserSql, userEmailFindSql } from "../schemas/auth.schema";
 
 export const signup = async (req: Request, res: Response) => {
   const { username, email } = req.body;
@@ -19,23 +12,8 @@ export const signup = async (req: Request, res: Response) => {
   ).toString();
 
   try {
-    const pool = mysql.createPool(conn);
-
-    var createTableSql = `CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL,
-            password VARCHAR(255) NOT NULL,
-            isAdmin BOOLEAN DEFAULT false
-            )`;
-
-    await pool.query(createTableSql);
-
-    const insertUsersSql = `
-            INSERT INTO users(username, password, email)
-            VALUES (?, ?, ?)`;
-
-    await pool.query(insertUsersSql, [username, password, email]);
+    await pool.query(createTableUsersSql);
+    await pool.query(insertUserSql, [username, password, email]);
 
     return res.status(200).json("User registration successfull");
   } catch (err) {
@@ -46,10 +24,9 @@ export const signup = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const pool = mysql.createPool(conn);
-  const rows = await pool.query(`SELECT * FROM users WHERE email = ?`, [email]);
+  const rows: any = await pool.query(userEmailFindSql, [email]);
 
-  const row: any = rows[0];
+  const row = rows[0];
   const user = row[0];
 
   if (row.length === 0) {
@@ -77,7 +54,7 @@ export const login = async (req: Request, res: Response) => {
     );
 
     res.cookie("token", accessToken);
-    return res.status(200).json(accessToken);
+    return res.status(200).json({ accessToken, user: user.id });
   } catch (err) {
     return res.status(500).json(err);
   }
